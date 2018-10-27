@@ -26,11 +26,17 @@ struct Todo: Codable {
     let status: Int
 }
 
+struct PostTodo: Codable {
+    let subject: String
+    let body: String
+    let limit: String
+}
+
 var uuid = ""
 
 class URLSessionGetClient {
     
-    func get(url urlString: String, method: String, parameters: [String: String], headers: [String: String]) {
+    func get(url urlString: String, method: String, parameters: [String: String], headers: [String: String], bodyParam: Data? = nil) {
         var compnents = URLComponents(string: urlString)
         
         var queryItems = [URLQueryItem]()
@@ -46,9 +52,13 @@ class URLSessionGetClient {
             request.setValue(value, forHTTPHeaderField: key)
         }
         
+        if let body = bodyParam {
+            request.httpBody = body
+        }
+
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let data = data {
-                //                print(response)
+                                print(response)
                 do {
 //                                        let json = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments)
 //                                        print(type(of: json))
@@ -90,11 +100,23 @@ func doRequest() {
     let parameters: [String: String] = [:]
     // uuid取得
 //    let headers: [String: String] = ["Content-Type": "application/json", "X-REQUEST-UUID":""]
-//    urlSessionGetClient.get(url: TODOAPI_BASEURL + "/uuid/issue", method: "POST", parameters: parameters, headers: headers)
+    //    urlSessionGetClient.get(url: TODOAPI_BASEURL + "/uuid/issue", method: "POST", parameters: parameters, headers: headers, todoParam: nil)
     
     // Todo一覧
-    let headers: [String: String] = ["Content-Type": "application/json", "X-REQUEST-UUID":"07e59358fcc55920116db8e1cfd5eaac1182b3c2"]
-    urlSessionGetClient.get(url: TODOAPI_BASEURL + "/todo/list/1", method: "GET", parameters: parameters, headers: headers)
+//    let headers: [String: String] = ["Content-Type": "application/json", "X-REQUEST-UUID":"d314000b53815a2d674cf9416dc0d427b0f47952"]
+//    urlSessionGetClient.get(url: TODOAPI_BASEURL + "/todo/list/1", method: "GET", parameters: parameters, headers: headers)
+
+    // Todo作成
+    let headers: [String: String] = ["Content-Type": "application/json", "X-REQUEST-UUID":"d314000b53815a2d674cf9416dc0d427b0f47952"]
+    let todo = PostTodo(subject: "タイトル", body: "本文", limit: "2018-10-31T00:00:00+09:00")
+    do {
+        let bodyParam = try JSONEncoder().encode(todo)
+        print(bodyParam)
+        urlSessionGetClient.get(url: TODOAPI_BASEURL + "/todo/create", method: "POST", parameters: parameters, headers: headers, bodyParam: bodyParam)
+    } catch {
+        print("encode error")
+    }
+//    urlSessionGetClient.get(url: TODOAPI_BASEURL + "/todo/create", method: "POST", parameters: parameters, headers: headers, bodyParam: JSONEncoder().encode(todo))
 
 }
 
